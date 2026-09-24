@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Свежая уязвимость в пакете — повод обновить его, а не причина уронить сборку
+         без единой правки в коде: аудит NuGet остаётся предупреждением. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <!-- Приложение русскоязычное и форматирует суммы по ru-RU, поэтому инвариантный
+         режим глобализации выключен: образу нужен ICU, он есть в mcr aspnet:8.0. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+</Project>

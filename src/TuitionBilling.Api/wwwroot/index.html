@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Биллинг оплаты обучения</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#8381;</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="login" class="login">
+  <form class="login-card" id="login-form">
+    <h1>Биллинг оплаты обучения</h1>
+    <p class="muted">Университет «Синергия»</p>
+    <label>Электронная почта
+      <input type="email" id="login-email" autocomplete="username" required>
+    </label>
+    <label>Пароль
+      <input type="password" id="login-password" autocomplete="current-password" required>
+    </label>
+    <div class="error" id="login-error" hidden></div>
+    <button type="submit">Войти</button>
+    <div class="hint" id="login-hint"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <aside class="sidebar">
+    <div class="brand">&#8381; Биллинг</div>
+    <nav id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="user-name" id="user-name"></div>
+      <div class="user-role" id="user-role"></div>
+      <button class="link" id="logout">Выйти</button>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1 id="page-title">—</h1>
+      <div id="page-actions"></div>
+    </header>
+    <div id="banner" class="banner" hidden></div>
+    <section id="content" class="content"></section>
+  </main>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

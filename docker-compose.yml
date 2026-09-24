@@ -1,0 +1,72 @@
+name: tuition-billing
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Данные о студентах — персональные, база обязана находиться в России
+      # (часть 5 статьи 18 закона 152-ФЗ). Здесь это просто том на машине,
+      # но при развёртывании выбор площадки — не технический вопрос.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/PaymentGateway.Emulator/Dockerfile
+    environment:
+      Gateway__ShopId: ${GATEWAY_SHOP_ID}
+      Gateway__SecretKey: ${GATEWAY_SECRET_KEY}
+      # Адрес уведомлений задаётся в настройках магазина, а не в каждом платеже.
+      Gateway__NotificationUrl: http://billing:8080/api/webhooks/gateway
+      Gateway__FeePercent: ${GATEWAY_FEE_PERCENT:-2.8}
+    ports:
+      - "${GATEWAY_PORT:-5090}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  billing:
+    build:
+      context: .
+      dockerfile: src/TuitionBilling.Api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+    environment:
+      ConnectionStrings__Billing: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Gateway__BaseUrl: http://gateway:8080
+      Gateway__ShopId: ${GATEWAY_SHOP_ID}
+      Gateway__SecretKey: ${GATEWAY_SECRET_KEY}
+      Billing__PublicUrl: ${BILLING_PUBLIC_URL:-http://localhost:5080}
+      # Пусто — проверка адреса отправителя уведомлений выключена. Для настоящего
+      # провайдера сюда идёт его список сетей, он публикуется в документации.
+      Billing__WebhookAllowedIps__0: ${WEBHOOK_ALLOWED_IP_0:-}
+      Seed__Enabled: ${SEED_ENABLED:-true}
+      Seed__AccountantPassword: ${SEED_ACCOUNTANT_PASSWORD}
+      Seed__StudentPassword: ${SEED_STUDENT_PASSWORD}
+    ports:
+      - "${BILLING_PORT:-5080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:
